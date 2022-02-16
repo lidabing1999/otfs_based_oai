@@ -442,33 +442,6 @@ install_usrp_uhd_driver() {
     fi
 }
 
-install_bladerf_driver_from_source(){
-    bladerf_install_log=$OPENAIR_DIR/cmake_targets/log/bladerf_install_log.txt
-    echo_info "\nInstalling BladeRF driver from sources. The log file for BladeRF driver installation is here: $bladerf_install_log "
-    (
-    cd /tmp
-    echo "Downloading BladeRF driver"
-    rm -rf /tmp/bladeRF
-    git clone https://github.com/Nuand/bladeRF.git
-    cd bladeRF
-    git checkout tags/2016.06
-    mkdir -p build
-    cd build
-    $CMAKE ../
-    echo "Compiling BladeRF driver"
-    make
-    $SUDO make install
-    $SUDO ldconfig
-    echo "Downloading FPGA and firmware images"
-    cd /tmp/bladeRF
-    wget --tries=3 --retry-connrefused https://www.nuand.com/fx3/bladeRF_fw_latest.img
-    wget --tries=3 --retry-connrefused https://www.nuand.com/fpga/hostedx40-latest.rbf
-    sudo mkdir -p /usr/share/Nuand/bladeRF
-    sudo mv bladeRF_fw_latest.img /usr/share/Nuand/bladeRF/bladeRF_fw.img
-    sudo mv hostedx40-latest.rbf /usr/share/Nuand/bladeRF/hostedx40.rbf
-    ) >& $bladerf_install_log
-}
-
 check_install_bladerf_driver(){
     if [[ "$OS_DISTRO" == "ubuntu" ]]; then
         if [ "$(get_distribution_release)" == "ubuntu14.04" ] ; then
@@ -862,7 +835,8 @@ check_install_oai_software() {
 
     install_asn1c_from_source $1
     $SUDO rm -fr /opt/ssh
-    $SUDO git clone https://gist.github.com/2190472.git /opt/ssh
+    #$SUDO git clone https://gist.github.com/2190472.git /opt/ssh
+	$SUDO git clone https://gitlab.eurecom.fr/oai/ssh.git /opt/ssh
 }
 
 install_asn1c_from_source(){

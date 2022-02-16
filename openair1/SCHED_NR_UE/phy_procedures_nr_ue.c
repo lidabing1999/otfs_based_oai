@@ -76,7 +76,9 @@ fifo_dump_emos_UE emos_dump_UE;
 
 char nr_mode_string[NUM_UE_MODE][20] = {"NOT SYNCHED","PRACH","RAR","RA_WAIT_CR", "PUSCH", "RESYNCH"};
 
-#if defined(EXMIMO) || defined(OAI_USRP) || defined(OAI_BLADERF) || defined(OAI_LMSSDR) || defined(OAI_ADRV9371_ZC706)
+const uint8_t nr_rv_round_map_ue[4] = {0, 2, 1, 3};
+
+#if defined(EXMIMO) || defined(OAI_USRP) || defined(OAI_BLADERF) || defined(OAI_LMSSDR) || defined(OAI_ADRV9371_ZC706) || defined(OAI_OXGRF)
 extern uint64_t downlink_frequency[MAX_NUM_CCs][4];
 #endif
 
@@ -1778,8 +1780,8 @@ void nr_ue_prach_procedures(PHY_VARS_NR_UE *ue, UE_nr_rxtx_proc_t *proc, uint8_t
 
     ue->prach_vars[gNB_id]->amp = AMP;
 
-    /* #if defined(EXMIMO) || defined(OAI_USRP) || defined(OAI_BLADERF) || defined(OAI_LMSSDR) || defined(OAI_ADRV9371_ZC706)
-      tx_amp = get_tx_amp_prach(ue->tx_power_dBm[nr_slot_tx], ue->tx_power_max_dBm, ue->frame_parms.N_RB_UL);
+    /* #if defined(EXMIMO) || defined(OAI_USRP) || defined(OAI_BLADERF) || defined(OAI_LMSSDR) || defined(OAI_ADRV9371_ZC706) || defined(OAI_OXGRF)
+      tx_amp = get_tx_amp_prach(ue->tx_power_dBm[nr_tti_tx], ue->tx_power_max_dBm, ue->frame_parms.N_RB_UL);
       if (tx_amp != -1)
         ue->prach_vars[gNB_id]->amp = tx_amp;
     #else

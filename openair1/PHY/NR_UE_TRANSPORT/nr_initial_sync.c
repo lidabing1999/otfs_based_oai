@@ -430,7 +430,7 @@ int nr_initial_sync(UE_nr_rxtx_proc_t *proc,
 	  phich_string[fp->phich_config_common.phich_resource],
 	  fp->nb_antenna_ports_gNB);*/
 
-#if defined(OAI_USRP) || defined(EXMIMO) || defined(OAI_BLADERF) || defined(OAI_LMSSDR) || defined(OAI_ADRV9371_ZC706)
+#if defined(OAI_USRP) || defined(EXMIMO) || defined(OAI_BLADERF) || defined(OAI_LMSSDR) || defined(OAI_ADRV9371_ZC706) || defined(OAI_OXGRF)
     LOG_I(PHY, "[UE %d] Measured Carrier Frequency %.0f Hz (offset %d Hz)\n",
 	  ue->Mod_id,
 	  openair0_cfg[0].rx_freq[0]+ue->common_vars.freq_offset,
@@ -480,7 +480,9 @@ int nr_initial_sync(UE_nr_rxtx_proc_t *proc,
 #ifndef OAI_BLADERF
 #ifndef OAI_LMSSDR
 #ifndef OAI_ADRV9371_ZC706
+#ifndef OAI_OXGRF
   //phy_adjust_gain(ue,ue->measurements.rx_power_avg_dB[0],0);
+#endif
 #endif
 #endif
 #endif
@@ -493,7 +495,9 @@ int nr_initial_sync(UE_nr_rxtx_proc_t *proc,
 #ifndef OAI_BLADERF
 #ifndef OAI_LMSSDR
 #ifndef OAI_ADRV9371_ZC706
+#ifndef OAI_OXGRF
   //phy_adjust_gain(ue,dB_fixed(ue->measurements.rssi),0);
+#endif
 #endif
 #endif
 #endif

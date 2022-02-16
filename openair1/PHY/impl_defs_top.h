@@ -42,6 +42,7 @@
  * @defgroup _GENERIC_PHY_RF_INTERFACE_ Generic PHY - RF Interface
  * @defgroup _USRP_PHY_RF_INTERFACE_    PHY - USRP RF Interface
  * @defgroup _BLADERF_PHY_RF_INTERFACE_    PHY - BLADERF RF Interface
+ * @defgroup _OXGRF_PHY_RF_INTERFACE_    PHY - OXGRF RF Interface
  * @defgroup _LMSSDR_PHY_RF_INTERFACE_    PHY - LMSSDR RF Interface
  * @}
  *

@@ -165,6 +165,8 @@ int transmission_mode=1;
 char *usrp_args=NULL;
 char *usrp_clksrc=NULL;
 
+char *oxgrf_args=NULL;
+
 THREAD_STRUCT thread_struct;
 /* struct for ethernet specific parameters given in eNB conf file */
 eth_params_t *eth_params;
@@ -482,6 +484,7 @@ void init_openair0(LTE_DL_FRAME_PARMS *frame_parms,int rxgain) {
     }
 
     if (usrp_args) openair0_cfg[card].sdr_addrs = usrp_args;
+    else if (oxgrf_args) openair0_cfg[card].sdr_addrs = oxgrf_args;
   }
 }
 

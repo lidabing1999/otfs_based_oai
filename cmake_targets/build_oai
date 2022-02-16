@@ -112,7 +112,7 @@ Options
 --UE-gen-nvram [output path]
    Specify gen_nvram_path (default \"$gen_nvram_path\")
 -w | --hardware
-   EXMIMO, USRP, BLADERF, LMSSDR, IRIS, ADRV9371_ZC706, SIMU, AW2SORI, None (Default)
+   EXMIMO, USRP, BLADERF, LMSSDR, IRIS, OXGRF, ADRV9371_ZC706, SIMU, NAW2SORI, one (Default)
    Adds this RF board support (in external packages installation and in compilation)
 -t | --transport
    Selects the transport protocol type, options: None, Ethernet, benetel4g, benetel5g
@@ -290,7 +290,7 @@ function main() {
                 "EXMIMO")
                     HW="EXMIMO"
                     ;;
-                "USRP" | "BLADERF" | "LMSSDR" | "IRIS" | "ADRV9371_ZC706" | "SIMU" | "AW2SORI")
+                "USRP" | "BLADERF" | "LMSSDR" | "IRIS" | "ADRV9371_ZC706" | "SIMU" | "OXGRF" | "AW2SORI")
                     HW="OAI_"$2
                     ;;
                 "None")
@@ -849,8 +849,7 @@ function main() {
   ####################################################
   # Build RF device and transport protocol libraries #
   ####################################################
-  if [ "$eNB" = "1" -o "$eNBocp" = "1" -o "$UE" = "1" -o "$gNB" = "1" -o "$RU" = "1"  -o "$nrUE" = "1" -o "$HWLAT" = "1" ] ; then
-
+  if [ "$HW" != "None" ] ; then
       # build RF device libraries
       if [ "$HW" != "None" ] ; then
           rm -f liboai_device.so
@@ -883,6 +882,20 @@ function main() {
               ln -sf liboai_bladerfdevif.so liboai_device.so
               ln -sf $dbin/liboai_bladerfdevif.so.$REL $dbin/liboai_device.so
               echo_info "liboai_device.so is linked to BLADERF device library"	 
+          elif [ "$HW" == "OAI_OXGRF" ] ; then
+             if [ ! -f "/usr/local/include/oxgrf_api_ss.h" ] ; then
+                 sudo cp $THIS_SCRIPT_PATH/../targets/ARCH/OXGRF/USERSPACE/LIB/oxgrf_api_ss.h  /usr/local/include/oxgrf_api_ss.h
+                 sudo cp $THIS_SCRIPT_PATH/../targets/ARCH/OXGRF/USERSPACE/LIB/liboxgrf_ss.so  /usr/local/lib/liboxgrf_ss.so
+                 sudo chmod +x /usr/local/lib/liboxgrf_ss.so
+                 sudo ldconfig /usr/local/lib
+             fi
+              compilations \
+                     $build_dir oai_oxgrfdevif \
+                     liboai_oxgrfdevif.so $dbin/liboai_oxgrfdevif.so.$REL
+              echo_info "before link"
+              ln -sf liboai_oxgrfdevif.so liboai_device.so
+              ln -sf $dbin/liboai_oxgrfdevif.so.$REL $dbin/liboai_device.so
+              echo_info "liboai_device.so is linked to OXGRF device library"
           elif [ "$HW" == "OAI_LMSSDR" ] ; then
 #              if [ -f "/usr/include/libbladeRF.h" ] ; then
                   compilations \
