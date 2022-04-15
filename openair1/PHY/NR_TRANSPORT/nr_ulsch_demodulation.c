@@ -1166,6 +1166,7 @@ void nr_ulsch_detection_mrc(NR_DL_FRAME_PARMS *frame_parms,
 }
 extern uint g_ul_time_amp[14];
 extern uint g_ul_freq_amp[14];
+uint g_pusch_amp;
 int nr_rx_pusch(PHY_VARS_gNB *gNB,
                 uint8_t ulsch_id,
                 uint32_t frame,
@@ -1382,14 +1383,14 @@ int nr_rx_pusch(PHY_VARS_gNB *gNB,
       stop_meas(&gNB->ulsch_llr_stats);
       rxdataF_ext_offset += gNB->pusch_vars[ulsch_id]->ul_valid_re_per_slot[symbol];
       
-      uint pusch_amp;
       if (symbol == (rel15_ul->start_symbol_index + rel15_ul->nr_of_symbols - 1)) {
         static int cnt = 0;
-        if (cnt < 10)
+        
         {
-          pusch_amp = cal_amp(&gNB->pusch_vars[ulsch_id]->rxdataF_ext[0][symbol * nb_re_pusch], nb_re_pusch);
+          g_pusch_amp = cal_amp(&gNB->pusch_vars[ulsch_id]->rxdataF_ext[0][symbol * nb_re_pusch], nb_re_pusch);
           //LOG_I(PHY, "UL AMP frame %d %d, symbol %d, rbs %d, res %d, time %d, freq %d \n", frame, slot, symbol, nb_re_pusch/12, nb_re_pusch, g_ul_time_amp[symbol], g_ul_freq_amp[symbol], pusch_amp);
-          LOG_I(PHY, "UL AMP frame %d %d, symbol %d, rbs %d, res %d, pusch amp %d \n", frame, slot, symbol, nb_re_pusch/12, nb_re_pusch, pusch_amp);
+          if (cnt < 10)
+            LOG_I(PHY, "UL AMP frame %d %d, symbol %d, rbs %d, res %d, pusch amp %d \n", frame, slot, symbol, nb_re_pusch/12, nb_re_pusch, g_pusch_amp);
 
           cnt++;
         }
