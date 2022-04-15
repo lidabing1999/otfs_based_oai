@@ -81,7 +81,7 @@ void nr_ue_layer_mapping(NR_UE_ULSCH_t **ulsch_ue,
 \param Ns Slot number (0..19)
 \param sample_offset offset within rxdata (points to beginning of subframe)
 */
-
+uint cal_amp(int16_t *dataIn, int len);
 int nr_slot_fep_ul(NR_DL_FRAME_PARMS *frame_parms,
                    int32_t *rxdata,
                    int32_t *rxdataF,

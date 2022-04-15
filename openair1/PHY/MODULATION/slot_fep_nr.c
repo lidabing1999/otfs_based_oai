@@ -33,6 +33,21 @@
 #undef LOG_I
 #define LOG_I(A,B...) printf(A)
 #endif*/
+uint g_ul_time_amp[14] = {0};
+uint g_ul_freq_amp[14] = {0};
+
+uint cal_amp(int16_t *dataIn, int len)
+{
+	int i;
+	uint sumA = 0;
+	for(i=0;i<len;i++)
+	{
+		sumA += abs(dataIn[i]);
+	}
+  sumA = sumA/len;
+	return sumA;
+}
+
 
 dft_size_idx_t get_dft_size_idx(uint16_t ofdm_symbol_size)
 {
@@ -334,7 +349,10 @@ int nr_slot_fep_ul(NR_DL_FRAME_PARMS *frame_parms,
       rxdata_ptr,
       (int16_t *)&rxdataF[symbol * frame_parms->ofdm_symbol_size],
       1);
-
+#if 0
+  g_ul_time_amp[symbol] = cal_amp(rxdata_ptr, 512);
+  g_ul_freq_amp[symbol] = cal_amp((int16_t *)&rxdataF[symbol * frame_parms->ofdm_symbol_size], 512);
+#endif
   return 0;
 }
 
