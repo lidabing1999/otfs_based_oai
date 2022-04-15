@@ -236,6 +236,8 @@ int nr_initial_sync(UE_nr_rxtx_proc_t *proc,
     /* process pss search on received buffer */
     sync_pos = pss_synchro_nr(ue, is, NO_RATE_CHANGE);
 
+    if (sync_pos < 0)
+        continue;
     if (sync_pos >= fp->nb_prefix_samples)
       ue->ssb_offset = sync_pos - fp->nb_prefix_samples;
     else

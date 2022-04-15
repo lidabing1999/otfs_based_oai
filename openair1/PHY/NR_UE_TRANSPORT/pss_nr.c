@@ -943,17 +943,20 @@ int pss_search_time_nr(int **rxdata, ///rx data in time domain
   }
 
   // computing absolute value of frequency offset
-  *f_off = ffo_est*frame_parms->subcarrier_spacing;  
 
   for (int pss_index = 0; pss_index < NUMBER_PSS_SEQUENCE; pss_index++) avg[pss_index]/=(length/4);
 
   *eNB_id = pss_source;
 
-  LOG_I(PHY,"[UE] nr_synchro_time: Sync source = %d, Peak found at pos %d, val = %llu (%d dB) avg %d dB, ffo %lf\n", pss_source, peak_position, (unsigned long long)peak_value, dB_fixed64(peak_value),dB_fixed64(avg[pss_source]),ffo_est);
+  //LOG_I(PHY,"[UE] nr_synchro_time: Sync source = %d, Peak found at pos %d, val = %llu (%d dB) avg %d dB, ffo %lf\n", pss_source, peak_position, (unsigned long long)peak_value, dB_fixed64(peak_value),dB_fixed64(avg[pss_source]),ffo_est);
 
   if (peak_value < 5*avg[pss_source])
+  {
+    LOG_I(PHY,"[UE] %d nr_synchro_time invalid: Sync source = %d, Peak found at pos %d, val = %llu (%d dB) avg %llu (%d dB), ffo %lf, %d hz\n", is, pss_source, peak_position, (unsigned long long)peak_value, dB_fixed64(peak_value), (unsigned long long)avg[pss_source], dB_fixed64(avg[pss_source]),ffo_est, *f_off);
     return(-1);
-
+  }
+    *f_off = ffo_est*frame_parms->subcarrier_spacing;  
+    LOG_I(PHY,"[UE] %d nr_synchro_time valid: Sync source = %d, Peak found at pos %d, val = %llu (%d dB) avg %llu (%d dB), ffo %lf, %d hz\n", is, pss_source, peak_position, (unsigned long long)peak_value, dB_fixed64(peak_value), (unsigned long long)avg[pss_source], dB_fixed64(avg[pss_source]),ffo_est, *f_off);
 
 #ifdef DBG_PSS_NR
 

@@ -59,6 +59,8 @@ int nr_slot_fep_init_sync(PHY_VARS_NR_UE *ue,
                           unsigned char Ns,
                           int sample_offset);
 
+uint cal_amp(int16_t *dataIn, int len);
+
 int slot_fep_mbsfn(PHY_VARS_UE *phy_vars_ue,
                    unsigned char l,
                    int subframe,
