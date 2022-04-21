@@ -1393,6 +1393,8 @@ int nr_rx_pusch(PHY_VARS_gNB *gNB,
             LOG_I(PHY, "UL AMP frame %d %d, symbol %d, rbs %d, res %d, pusch amp %d \n", frame, slot, symbol, nb_re_pusch/12, nb_re_pusch, g_pusch_amp);
 
           cnt++;
+          if(cnt > 100)
+            cnt = 8;
         }
       }
     }
