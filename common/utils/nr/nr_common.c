@@ -116,21 +116,22 @@ uint16_t get_band(uint64_t downlink_frequency, int32_t delta_duplex)
 
   uint64_t center_freq_diff_khz = 999999999999999999; // 2^64
   uint16_t current_band = 0;
-
+printf("dl_freq_khz %d\n",dl_freq_khz);
   for (int ind = 0; ind < sizeofArray(nr_bandtable); ind++) {
 
     if (dl_freq_khz < nr_bandtable[ind].dl_min || dl_freq_khz > nr_bandtable[ind].dl_max)
       continue;
-
+//printf("hello!");
     int32_t current_offset_khz = nr_bandtable[ind].ul_min - nr_bandtable[ind].dl_min;
-
+//printf("current_offset_khz %d, delta_duplex_khz %d\n",current_offset_khz,delta_duplex_khz);
     if (current_offset_khz != delta_duplex_khz)
       continue;
 
     uint64_t center_frequency_khz = (nr_bandtable[ind].dl_max + nr_bandtable[ind].dl_min) / 2;
-
+//LOG_W(PHY,"ind %d, dl_freq_khz %d, center_fre_khz %d,center_freq_diff_khz %d\n",ind,dl_freq_khz,center_frequency_khz,center_freq_diff_khz);
     if (abs(dl_freq_khz - center_frequency_khz) < center_freq_diff_khz){
       current_band = nr_bandtable[ind].band;
+      
       center_freq_diff_khz = abs(dl_freq_khz - center_frequency_khz);
     }
   }

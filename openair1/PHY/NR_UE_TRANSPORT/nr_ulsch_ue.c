@@ -47,6 +47,11 @@
 #include "PHY/NR_REFSIG/ul_ref_seq_nr.h"
 #include <openair2/UTIL/OPT/opt.h>
 
+//zjg
+#include <sys/time.h>
+struct timeval start, end;  
+//zjg
+
 //#define DEBUG_PUSCH_MAPPING
 //#define DEBUG_MAC_PDU
 //#define DEBUG_DFT_IDFT
@@ -551,11 +556,19 @@ uint8_t nr_ue_pusch_common_procedures(PHY_VARS_NR_UE *UE,
                    frame_parms->nb_prefix_samples,
                    CYCLIC_PREFIX);
     } else { // normal cyclic prefix
+
+//zjg
+      gettimeofday(&start, NULL);  
+
       nr_normal_prefix_mod(txdataF[ap],
                            &txdata[ap][tx_offset],
                            14,
                            frame_parms,
                            slot);
+      gettimeofday(&end, NULL);    
+      printf("程序运行时长 %d 微秒\n", (end.tv_sec-start.tv_sec)*1000000+end.tv_usec-start.tv_usec);
+//zjg
+
     }
   }
 

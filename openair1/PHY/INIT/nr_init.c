@@ -497,14 +497,15 @@ void nr_phy_config_request(NR_PHY_Config_t *phy_config) {
 
   uint64_t dl_bw_khz = (12*gNB_config->carrier_config.dl_grid_size[gNB_config->ssb_config.scs_common.value].value)*(15<<gNB_config->ssb_config.scs_common.value);
   fp->dl_CarrierFreq = ((dl_bw_khz>>1) + gNB_config->carrier_config.dl_frequency.value)*1000 ;
-  
+  LOG_W(PHY,"dl_bw_khz %d, gNB_config->carrier_config.dl_frequency.value %d\n",dl_bw_khz,gNB_config->carrier_config.dl_frequency.value);
   uint64_t ul_bw_khz = (12*gNB_config->carrier_config.ul_grid_size[gNB_config->ssb_config.scs_common.value].value)*(15<<gNB_config->ssb_config.scs_common.value);
   fp->ul_CarrierFreq = ((ul_bw_khz>>1) + gNB_config->carrier_config.uplink_frequency.value)*1000 ;
-
+//fp->dl_CarrierFreq = 5900000000;
+//fp->ul_CarrierFreq = 5900000000;
   int32_t dlul_offset = fp->ul_CarrierFreq - fp->dl_CarrierFreq;
   fp->nr_band = get_band(fp->dl_CarrierFreq, dlul_offset);
 
-  LOG_I(PHY, "DL frequency %lu Hz, UL frequency %lu Hz: band %d, uldl offset %d Hz\n", fp->dl_CarrierFreq, fp->ul_CarrierFreq, fp->nr_band, dlul_offset);
+  LOG_W(PHY, "DL frequency %lu Hz, UL frequency %lu Hz: band %d, uldl offset %d Hz\n", fp->dl_CarrierFreq, fp->ul_CarrierFreq, fp->nr_band, dlul_offset);
 
   fp->threequarter_fs = openair0_cfg[0].threequarter_fs;
   LOG_A(PHY,"Configuring MIB for instance %d, : (Nid_cell %d,DL freq %llu, UL freq %llu)\n",

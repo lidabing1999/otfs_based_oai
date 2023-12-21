@@ -66,8 +66,12 @@ void normal_prefix_mod(int32_t *txdataF,int32_t *txdata,uint8_t nsymb,LTE_DL_FRA
 void nr_normal_prefix_mod(int32_t *txdataF,int32_t *txdata,uint8_t nsymb,NR_DL_FRAME_PARMS *frame_parms, uint32_t slot)
 {
   // This function works only slot wise. For more generic symbol generation refer nr_feptx0()
+  PHY_otfs_mod(txdataF,14,frame_parms->ofdm_symbol_size);
+  //LOG_W(PHY,"modulate the second otfs frame\n");
+  //PHY_otfs_mod(txdataF+frame_parms->ofdm_symbol_size*7,7,2048);
   if (frame_parms->numerology_index != 0) { // case where numerology != 0
     if (!(slot%(frame_parms->slots_per_subframe/2))) {
+      /*
       PHY_ofdm_mod(txdataF,
              txdata,
              frame_parms->ofdm_symbol_size,
@@ -80,6 +84,20 @@ void nr_normal_prefix_mod(int32_t *txdataF,int32_t *txdata,uint8_t nsymb,NR_DL_F
              nsymb - 1,
              frame_parms->nb_prefix_samples,
              CYCLIC_PREFIX);
+             */
+      PHY_add_cp(txdataF,
+             txdata,
+             frame_parms->ofdm_symbol_size,
+             1,
+             frame_parms->nb_prefix_samples0,
+             CYCLIC_PREFIX);
+      PHY_add_cp(txdataF+frame_parms->ofdm_symbol_size,
+             txdata + frame_parms->ofdm_symbol_size + frame_parms->nb_prefix_samples0,
+             frame_parms->ofdm_symbol_size,
+             nsymb - 1,
+             frame_parms->nb_prefix_samples,
+             CYCLIC_PREFIX);
+           
     }
     else {
       PHY_ofdm_mod(txdataF,
@@ -368,3 +386,242 @@ void apply_nr_rotation(NR_DL_FRAME_PARMS *fp,
   }
 }
 		       
+void PHY_add_cp(int *input,                       /// pointer to complex input
+                  int *output,                      /// pointer to complex output
+                  int fftsize,            /// FFT_SIZE
+                  unsigned char nb_symbols,         /// number of OFDM symbols
+                  unsigned short nb_prefix_samples,  /// cyclic prefix length
+                  Extension_t etype                /// type of extension
+                 )
+{
+
+//assert(0);
+  if(nb_symbols == 0) return;
+
+  int16_t temp[2*2*6144*4] __attribute__((aligned(32)));
+  int i,j;
+
+  volatile int *output_ptr=(int*)0;
+
+  int *temp_ptr=(int*)0;
+  idft_size_idx_t idftsize;
+
+  switch (fftsize) {
+  case 128:
+    idftsize = IDFT_128;
+    break;
+
+  case 256:
+    idftsize = IDFT_256;
+    break;
+
+  case 512:
+    idftsize = IDFT_512;
+    break;
+
+  case 1024:
+    idftsize = IDFT_1024;
+    break;
+
+  case 1536:
+    idftsize = IDFT_1536;
+    break;
+
+  case 2048:
+    idftsize = IDFT_2048;
+    break;
+
+  case 3072:
+    idftsize = IDFT_3072;
+    break;
+
+  case 4096:
+    idftsize = IDFT_4096;
+    break;
+
+  case 6144:
+    idftsize= IDFT_6144;
+    break;
+
+ case 12288:
+    idftsize= IDFT_12288;
+    break;
+
+ case 24576:
+    idftsize= IDFT_24576;
+    break;
+
+  default:
+    idftsize = IDFT_512;
+    break;
+  }
+
+#ifdef DEBUG_OFDM_MOD
+  printf("[PHY] OFDM mod (size %d,prefix %d) Symbols %d, input %p, output %p\n",
+      fftsize,nb_prefix_samples,nb_symbols,input,output);
+#endif
+
+
+
+  for (i=0; i<nb_symbols; i++) {
+
+#ifdef DEBUG_OFDM_MOD
+    printf("[PHY] symbol %d/%d offset %d (%p,%p -> %p)\n",i,nb_symbols,i*fftsize+(i*nb_prefix_samples),input,&input[i*fftsize],&output[(i*fftsize) + ((i)*nb_prefix_samples)]);
+#endif
+
+#ifndef __AVX2__
+    // handle 128-bit alignment for 128-bit SIMD (SSE4,NEON,AltiVEC)
+    //assert(0);
+    idft(idftsize,(int16_t *)&input[i*fftsize],
+         (fftsize==128) ? (int16_t *)temp : (int16_t *)&output[(i*fftsize) + ((1+i)*nb_prefix_samples)],
+         1);
+#else
+    // on AVX2 need 256-bit alignment
+    /*idft(idftsize,(int16_t *)&input[i*fftsize],
+         (int16_t *)temp,
+         1);*/
+    //memcpy((int16_t *)temp,(int16_t *)&input[i*fftsize],
+    //      fftsize);
+
+#endif
+
+    // Copy to frame buffer with Cyclic Extension
+    // Note:  will have to adjust for synchronization offset!
+
+    switch (etype) {
+    case CYCLIC_PREFIX:
+      output_ptr = &output[(i*fftsize) + ((1+i)*nb_prefix_samples)];
+      temp_ptr = (int *)&input[i*fftsize];
+
+
+      //      msg("Doing cyclic prefix method\n");
+
+#ifndef __AVX2__
+      if (fftsize==128) 
+#endif
+      {
+        memcpy((void*)output_ptr,(void*)temp_ptr,fftsize<<2);
+      }
+      memcpy((void*)&output_ptr[-nb_prefix_samples],(void*)&output_ptr[fftsize-nb_prefix_samples],nb_prefix_samples<<2);
+      break;
+
+    case CYCLIC_SUFFIX:
+
+
+      output_ptr = &output[(i*fftsize)+ (i*nb_prefix_samples)];
+
+      temp_ptr = (int *)temp;
+
+      //      msg("Doing cyclic suffix method\n");
+
+      for (j=0; j<fftsize ; j++) {
+        output_ptr[j] = temp_ptr[2*j];
+      }
+
+
+      for (j=0; j<nb_prefix_samples; j++)
+        output_ptr[fftsize+j] = output_ptr[j];
+
+      break;
+
+    case ZEROS:
+
+      break;
+
+    case NONE:
+
+      //      msg("NO EXTENSION!\n");
+      output_ptr = &output[fftsize];
+
+      temp_ptr = (int *)temp;
+
+      for (j=0; j<fftsize ; j++) {
+        output_ptr[j] = temp_ptr[2*j];
+
+
+      }
+
+      break;
+
+    default:
+      break;
+
+    }
+
+
+
+  }
+
+
+}
+
+void PHY_otfs_mod(int *input, int nsymb, int ofdm_symbol_size){
+    short otfs_frame[2*nsymb*ofdm_symbol_size];
+    //转置矩阵
+    for(int j=0; j<ofdm_symbol_size;j++){
+      for(int i = 0; i<nsymb; i++){
+        otfs_frame[2*i+j*2*nsymb] = ((short *)input)[i*2*ofdm_symbol_size+2*j];
+        otfs_frame[2*i+j*2*nsymb+1] = ((short *)input)[i*2*ofdm_symbol_size+1+2*j];
+      }
+    }
+    //时域做14点idft
+    int16_t otfs7[2*nsymb]__attribute__((aligned(32)));
+    int16_t idft_otfs_7[2*nsymb]__attribute__((aligned(32)));
+    int16_t idft_otfs[2*nsymb*ofdm_symbol_size]__attribute__((aligned(32)));
+    for(int j=0; j<ofdm_symbol_size; j++){
+      for(int i=0; i<2*nsymb; i++){
+        otfs7[i] = otfs_frame[i+j*2*nsymb];
+      }
+      idft(IDFT_14,otfs7,idft_otfs_7,1);
+      for(int i=0; i<2*nsymb; i++) {
+        idft_otfs[i+j*2*nsymb] = idft_otfs_7[i];
+      }
+    }
+    //再转置矩阵
+    memset(&otfs_frame, 0, sizeof(otfs_frame));
+    for(int j=0; j<nsymb; j++){
+      for(int i=0; i<ofdm_symbol_size; i++){
+        otfs_frame[2*i+j*2*ofdm_symbol_size] = idft_otfs[i*2*nsymb + 2*j];
+        otfs_frame[2*i+j*2*ofdm_symbol_size + 1] = idft_otfs[i*2*nsymb + 1+ 2*j];
+      }
+    }
+    //赋值
+    memcpy((void *)input, (void *)otfs_frame, sizeof(otfs_frame));
+    
+
+}	
+void PHY_otfs_demod(int *input, int nsymb, int ofdm_symbol_size){
+  short otfs_frame[2*nsymb*ofdm_symbol_size];
+  //转置矩阵
+  for(int j = 0; j<ofdm_symbol_size; j++){
+    for(int i=0; i<nsymb; i++){
+      otfs_frame[2*i+j*2*nsymb] = ((short *)input)[i*2*ofdm_symbol_size+2*j];
+      otfs_frame[2*i+j*2*nsymb+1] = ((short *)input)[i*2*ofdm_symbol_size+1+2*j];
+    }
+  }
+  //时域做14点dft
+  int16_t otfs7[2*nsymb]__attribute__((aligned(32)));
+  int16_t dft_otfs_7[2*nsymb]__attribute__((aligned(32)));
+  int16_t dft_otfs[2*nsymb*ofdm_symbol_size]__attribute__((aligned(32)));
+  for(int j=0; j<ofdm_symbol_size; j++){
+    for(int i=0; i<2*nsymb; i++){
+      otfs7[i]=otfs_frame[i+j*2*nsymb];
+    }
+    dft(DFT_14,otfs7,dft_otfs_7,1);
+    for(int i =0; i<2*nsymb;i++){
+      dft_otfs[i+j*2*nsymb] = dft_otfs_7[i];
+    }
+  }
+  //矩阵转置回来
+  memset(&otfs_frame, 0 ,sizeof(otfs_frame));
+  for(int j=0; j<nsymb; j++){
+    for(int i=0; i<ofdm_symbol_size; i++){
+      otfs_frame[2*i+j*2*ofdm_symbol_size] = dft_otfs[i*2*nsymb + 2*j];
+      otfs_frame[2*i+j*2*ofdm_symbol_size + 1] = dft_otfs[i*2*nsymb + 1 + 2*j];
+    }
+  }
+  //赋值
+  memcpy((void *)input, (void *)otfs_frame, sizeof(otfs_frame));
+  
+
+}

@@ -355,7 +355,7 @@ int main(int argc, char **argv)
       break;
 
     case 'd':
-      delay = atoi(optarg);
+      maxDoppler = atoi(optarg);
       break;
       
     case 'e':
@@ -912,7 +912,7 @@ int main(int argc, char **argv)
   int     ptrs_symbols      = 0; // to calculate total PTRS RE's in a slot
 
   double ts = 1.0/(frame_parms->subcarrier_spacing * frame_parms->ofdm_symbol_size);
-
+LOG_W(PHY,"scs is %d, ofdm_size is %d\n",frame_parms->subcarrier_spacing,frame_parms->ofdm_symbol_size);
   /* -T option enable PTRS */
   if(enable_ptrs)
   {
@@ -1233,7 +1233,7 @@ int main(int argc, char **argv)
           }
         }
 
-
+LOG_W(PHY,"max_Doppler = %f\n",UE2gNB->max_Doppler);
         if (UE2gNB->max_Doppler == 0) {
           multipath_channel(UE2gNB, s_re, s_im, r_re, r_im, slot_length, 0, (n_trials==1)?1:0);
         } else {

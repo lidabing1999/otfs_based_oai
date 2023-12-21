@@ -344,11 +344,13 @@ int nr_slot_fep_ul(NR_DL_FRAME_PARMS *frame_parms,
     rxdata_ptr = (int16_t *)&rxdata[rxdata_offset - sample_offset];
 
   }
-
+/*
   dft(dftsize,
       rxdata_ptr,
       (int16_t *)&rxdataF[symbol * frame_parms->ofdm_symbol_size],
       1);
+      */
+     memcpy((int16_t *)&rxdataF[symbol * frame_parms->ofdm_symbol_size],rxdata_ptr,sizeof(int32_t)*frame_parms->ofdm_symbol_size);
 #if 0
   g_ul_time_amp[symbol] = cal_amp(rxdata_ptr, 512);
   g_ul_freq_amp[symbol] = cal_amp((int16_t *)&rxdataF[symbol * frame_parms->ofdm_symbol_size], 512);
@@ -366,7 +368,7 @@ void apply_nr_rotation_ul(NR_DL_FRAME_PARMS *frame_parms,
 			  
   int symb_offset = (slot%frame_parms->slots_per_subframe)*frame_parms->symbols_per_slot;
   int soffset = (slot&3)*frame_parms->symbols_per_slot*frame_parms->ofdm_symbol_size;
-
+ //LOG_W(PHY,"soffst is %d\n",soffset);
   for (int symbol=first_symbol;symbol<nsymb;symbol++) {
     
     uint32_t rot2 = ((uint32_t*)frame_parms->symbol_rotation[1])[symbol + symb_offset];

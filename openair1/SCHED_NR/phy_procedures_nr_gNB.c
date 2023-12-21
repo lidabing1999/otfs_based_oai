@@ -438,7 +438,7 @@ void nr_fill_indication(PHY_VARS_gNB *gNB, int frame, int slot_rx, int ULSCH_id,
   else                        cqi=(640+SNRtimes10)/5;
 
 
-  if (0/*pusch_pdu->mcs_index == 9*/) {
+  if (0/*g_pusch_amp>0/*pusch_pdu->mcs_index == 9*/) {
       __attribute__((unused))
 #ifdef __AVX2__
       int off = ((pusch_pdu->rb_size&1) == 1)? 4:0;
@@ -448,6 +448,8 @@ void nr_fill_indication(PHY_VARS_gNB *gNB, int frame, int slot_rx, int ULSCH_id,
       LOG_M("rxsigF0.m","rxsF0",&gNB->common_vars.rxdataF[0][(slot_rx&3)*gNB->frame_parms.ofdm_symbol_size*gNB->frame_parms.symbols_per_slot],gNB->frame_parms.ofdm_symbol_size*gNB->frame_parms.symbols_per_slot,1,1);
       LOG_M("rxsigF0_ext.m","rxsF0_ext",
              &gNB->pusch_vars[0]->rxdataF_ext[0][pusch_pdu->start_symbol_index*NR_NB_SC_PER_RB * pusch_pdu->rb_size],pusch_pdu->nr_of_symbols*(off+(NR_NB_SC_PER_RB * pusch_pdu->rb_size)),1,1);
+      LOG_M("chestT0.m","chT0",
+		        &gNB->pusch_vars[0]->ul_ch_estimates_time[0][0],gNB->frame_parms.ofdm_symbol_size,1,1);
       LOG_M("chestF0.m","chF0",
             &gNB->pusch_vars[0]->ul_ch_estimates[0][pusch_pdu->start_symbol_index*gNB->frame_parms.ofdm_symbol_size],gNB->frame_parms.ofdm_symbol_size,1,1);
       LOG_M("chestF0_ext.m","chF0_ext",
@@ -616,7 +618,9 @@ void phy_procedures_gNB_common_RX(PHY_VARS_gNB *gNB, int frame_rx, int slot_rx) 
                      0);
     }
   }
-
+int offset = (slot_rx&3)*gNB->frame_parms.ofdm_symbol_size*14;
+PHY_otfs_demod(&gNB->common_vars.rxdataF[0][offset],14,gNB->frame_parms.ofdm_symbol_size);
+//LOG_W(PHY,"slot_rx is %d\n",slot_rx);
   for (aa = 0; aa < gNB->frame_parms.nb_antennas_rx; aa++) {
     apply_nr_rotation_ul(&gNB->frame_parms,
 			 gNB->common_vars.rxdataF[aa],
@@ -805,7 +809,7 @@ int phy_procedures_gNB_uespec_RX(PHY_VARS_gNB *gNB, int frame_rx, int slot_rx) {
       }
     }
   }
-
+//LOG_W(PHY,"hello\n");
   for (int i=0;i<NUMBER_OF_NR_SRS_MAX;i++) {
     NR_gNB_SRS_t *srs = gNB->srs[i];
     if (srs) {

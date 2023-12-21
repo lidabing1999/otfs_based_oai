@@ -2445,6 +2445,61 @@ void idft16f(int16_t *x,int16_t *y) {
   idft16(x,y);
 }
 
+void dft14(int16_t *x, int16_t *y, uint8_t scale_flag) {
+float z[14*2];
+float w[14*2];
+  // Initialize the output array to zero
+  for (int i = 0; i < 2 * 14; i++) {
+    y[i] = 0;
+    z[i] = 0;
+    w[i] = (float)x[i];
+  }
+  // Loop over the DFT coefficients
+  for (int k = 0; k < 14; k++) {
+    // Loop over the signal samples
+    for (int n = 0; n < 14; n++) {
+      // Compute the angle
+      float theta = -2 * M_PI * k * n / 14;
+      // Compute the cosine and sine terms
+      float cos_term = cos(theta);
+      float sin_term = sin(theta);
+      // Update the real and imaginary parts of the k-th DFT coefficient
+      z[2 * k] += w[2*n] * cos_term - w[2*n+1] * sin_term; // Real part
+      z[2 * k + 1] += w[2*n] * sin_term + w[2*n+1] * cos_term; // Imaginary part
+
+      //printf("x[%d] = %d,x[%d] = %d\n",2*n,x[2*n],2*n+1,x[2*n+1]);
+    }
+      y[2*k] = z[2*k];
+      y[2*k+1] = z[2*k+1];
+  }
+  //y = y/7; 
+}
+
+void idft14(int16_t *x, int16_t *y, uint8_t scale_flag) {
+float z[14*2];
+float w[14*2];
+    for (int i = 0; i < 2 * 14; i++) {
+    y[i] = 0;
+    z[i] = 0;
+    w[i] = (float)x[i];
+  }
+    for (int k = 0; k < 14; k++) {
+        for (int n = 0; n < 14; n++) {
+            float theta = 2 * M_PI * k * n / 14;
+            float cos_term = cos(theta);
+            float sin_term = sin(theta);
+      // 计算DFT
+      z[2 * k] += w[2*n] * cos_term - w[2*n+1] * sin_term; // 实部
+      z[2 * k + 1] += w[2*n] * sin_term + w[2*n+1] * cos_term; // 虚部
+      //y[2*k] = z[2*k];
+      //y[2*k+1] = z[2*k+1];
+      //printf("x[%d] = %d,x[%d] = %d\n",2*n,x[2*n],2*n+1,x[2*n+1]);
+    }
+    y[2*k] = (int16_t)z[2*k]/14;
+    y[2*k+1] = (int16_t)z[2*k+1]/14;
+  }
+}
+
 #if defined(__x86_64__) || defined(__i386__)
 #ifdef __AVX2__
 // Does two 16-point IDFTS (x[0 .. 15] is 128 LSBs of input vector, x[16..31] is in 128 MSBs) 

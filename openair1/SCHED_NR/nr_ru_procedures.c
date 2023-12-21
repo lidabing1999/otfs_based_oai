@@ -533,6 +533,7 @@ void nr_fep0(RU_t *ru, int first_half) {
   VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(VCD_SIGNAL_DUMPER_FUNCTIONS_PHY_PROCEDURES_RU_FEPRX+proc->tti_rx, 1);
 
   int offset = (proc->tti_rx&3) * fp->symbols_per_slot * fp->ofdm_symbol_size;
+
   for (l = start_symbol; l < end_symbol; l++) {
     for (aa = 0; aa < fp->nb_antennas_rx; aa++) {
       nr_slot_fep_ul(fp,
@@ -542,6 +543,13 @@ void nr_fep0(RU_t *ru, int first_half) {
                      proc->tti_rx,
                      ru->N_TA_offset);
     }
+  }
+  //PHY_otfs_demod(&ru->common.rxdataF[0][offset],14,2048);
+    if(first_half == 1){
+    //PHY_sfft(ru->common.rxdataF[0]+offset,7,2048);
+    PHY_otfs_demod(&ru->common.rxdataF[0][offset],7,2048);
+  }else{
+    PHY_otfs_demod(&ru->common.rxdataF[0][offset]+2048*7,7,2048);
   }
   VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(VCD_SIGNAL_DUMPER_FUNCTIONS_PHY_PROCEDURES_RU_FEPRX+proc->tti_rx, 0);
 }

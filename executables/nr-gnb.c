@@ -215,10 +215,11 @@ void rx_func(void *param) {
   if (rx_slot_type == NR_UPLINK_SLOT || rx_slot_type == NR_MIXED_SLOT) {
     // UE-specific RX processing for subframe n
     // TODO: check if this is correct for PARALLEL_RU_L1_TRX_SPLIT
-
+    
     // Do PRACH RU processing
     L1_nr_prach_procedures(gNB,frame_rx,slot_rx);
-
+    //int offset = (slot_rx&3)*2048*14;
+    //PHY_otfs_demod(&gNB->common_vars.rxdataF[0][offset],14,2048);
     //apply the rx signal rotation here
     for (int aa = 0; aa < gNB->frame_parms.nb_antennas_rx; aa++) {
       apply_nr_rotation_ul(&gNB->frame_parms,
